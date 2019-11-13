@@ -77,6 +77,118 @@ public static void initGlobal() {
 
 		assemble();
 	}
+
+
+	public static void beamtest() {
+		 initGlobal();
+		//initGlobalreadFile();
+		//initGlobalBC();
+		 System.out.println(globalK);
+		System.out.println("det:" + globalK.det());
+		setBC(1,0);
+		//setBC(2,0);
+		setBC(1,3);
+		//setBC(2,3);
+		
+		double[][] globalarray = globalK.toDoubleArray();
+		Juma.Matrix jmatr = new Juma.Matrix(globalarray);
+		// Juma.Matrix method
+		// subm=jmatr.getMatrix(NodeNum/2,2*NodeNum-1,NodeNum/2,2*NodeNum-1);
+		// System.out.println(subm);
+		// double[][] f=new double[][]{{5000},{0},{5000},{0}};
+		// Juma.Matrix f= Juma.Matrix.random(2*NodeNum-NodeNum/2,1);
+		// subm;
+		// Juma.Matrix rs=subm.solve(f);
+
+		//Juma.Matrix subm = jmatr.getMatrix(0, 2 * NodeNum - 1, 0, 2 * NodeNum - 1);
+		//Juma.Matrix f = Juma.Matrix.random(2 * NodeNum, 1);
+		//double[][] ff = f.getArray();
+		
+		Matrix fff =SparseMatrix.Factory.ones(2 * NodeNum, 1);
+		Matrix rs = globalK.solve(fff);
+
+		for (int i = 0; i <2* NodeNum; i++) {
+			for (int j = 0; j < 1; j++)
+				System.out.print(i + ":" + rs.toDoubleArray()[i][j] + "\n");
+		}
+		//System.out.println(rs);
+		
+         //method 2 solution
+		// Matrix rs= globalK.inv().times(globalF.subMatrix(Calculation.Ret.LINK,4,7));
+		 //System.out.println(rs);
+		// System.out.println(ele.getLinearShape2Ds()[1].getValue(1,3));
+		// System.out.println(ele.getLinearShape2Ds()[2].getValue(1,3));
+	}
+  // (1, 0, 0) stand for 1 constraint(x-direction) for row,column=(0 0);
+	//(2, 0, 0) stand for 2 constraint(y-direction)
+	////(3, 0, 0) stand for 3 constraint(z-rotation)
+	/*public static void initGlobalBC() {
+		globalBC.setAsInt(1, 0, 0);
+		globalBC.setAsInt(2, 1, 0);
+		globalBC.setAsInt(1, 2, 0);
+		globalBC.setAsInt(2, 3, 0);
+	}
+	*/
+
+	public static double bigNum = 1e20;
+  //set related BC point to bignum
+	public static void setBC(int constraint, int i) {
+		globalBC.setAsInt(constraint, i, 0);
+	
+			if (globalBC.getAsInt(i, 0) ==1) {  //disp in y is 0;
+				globalK.setAsDouble(bigNum, 2 * i, 2 * i); 
+			
+				// globalK.deleteRows(Calculation.Ret.NEW,i);
+				// globalK.deleteColumns(Calculation.Ret.NEW,i);
+				// globalF.deleteRows(Calculation.Ret.NEW,i);
+
+			}
+			if (globalBC.getAsInt(i, 0) ==2) {////mometum  is 0;
+				
+				globalK.setAsDouble(bigNum, 2 * i + 1, 2 * i + 1);  
+			
+
+			}
+	}
+
+	public static void initGlobalF(int i) {
+		globalF.setAsFloat(5000, i, 0);
+		//globalF.setAsFloat(0, 5, 0);
+		//globalF.setAsFloat(5000, 6, 0);
+		//globalF.setAsFloat(0, 7, 0);
+	}
+
+	public static void assemble() {
+		for (Beam ele : elems) {
+			// System.out.println(ele.getK().det());
+			// ele.getK().print(1,1);
+			BaseNode[] enodes = ele.getNodes();
+
+			// int i=0;
+			for (int i = 0; i < 2; i++) {
+				for (int j = 0; j < 2; j++) {
+
+					 globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number, 2 * enodes[j].number)
+                             + ele.getK().get(2 * enodes[i].localnumber, 2 * enodes[j].localnumber),
+                     2 * enodes[i].number, 2 * enodes[j].number);
+
+             globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number, 2 * enodes[j].number+1)
+                             + ele.getK().get(2 * enodes[i].localnumber, 2 * enodes[j].localnumber+1),
+                     2 * enodes[i].number, 2 * enodes[j].number+1);
+
+             globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number+1, 2 * enodes[j].number)
+                             + ele.getK().get(2 * enodes[i].localnumber+1, 2 * enodes[j].localnumber),
+                     2 * enodes[i].number+1, 2 * enodes[j].number);
+
+             globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number + 1, 2 * enodes[j].number + 1)
+                             + ele.getK().get(2 * enodes[i].localnumber + 1, 2 * enodes[j].localnumber + 1),
+                     2 * enodes[i].number + 1, 2 * enodes[j].number + 1);
+
+				}
+			}
+			// System.out.print(globalK);
+		}
+	}
 	public static void initGlobalreadFile() {
 		File f = new File("data.txt");
 		BufferedReader bf;
@@ -125,105 +237,6 @@ public static void initGlobal() {
 			e.printStackTrace();
 		}
 		assemble();
-	}
-
-	public static void beamtest() {
-		 initGlobal();
-		//initGlobalreadFile();
-		initGlobalBC();
-		 System.out.println(globalK);
-		System.out.println("det:" + globalK.det());
-		setBC(0);
-		
-		double[][] globalarray = globalK.toDoubleArray();
-		Juma.Matrix jmatr = new Juma.Matrix(globalarray);
-		// Juma.Matrix
-		// subm=jmatr.getMatrix(NodeNum/2,2*NodeNum-1,NodeNum/2,2*NodeNum-1);
-		// System.out.println(subm);
-		// double[][] f=new double[][]{{5000},{0},{5000},{0}};
-		// Juma.Matrix f= Juma.Matrix.random(2*NodeNum-NodeNum/2,1);
-		// subm;
-		// Juma.Matrix rs=subm.solve(f);
-
-		//Juma.Matrix subm = jmatr.getMatrix(0, 2 * NodeNum - 1, 0, 2 * NodeNum - 1);
-		//Juma.Matrix f = Juma.Matrix.random(2 * NodeNum, 1);
-		//double[][] ff = f.getArray();
-		
-		Matrix fff = SparseMatrix.Factory.ones(2 * NodeNum, 1);
-		Matrix rs = globalK.solve(fff);
-
-		for (int i = 0; i < NodeNum; i++) {
-			for (int j = 0; j < 1; j++)
-				System.out.print(i + ":" + rs.toDoubleArray()[i][j] + "\n");
-		}
-		System.out.println();
-		
-         //method 2 solution
-		// Matrix rs= globalK.inv().times(globalF.subMatrix(Calculation.Ret.LINK,4,7));
-		 //System.out.println(rs);
-		// System.out.println(ele.getLinearShape2Ds()[1].getValue(1,3));
-		// System.out.println(ele.getLinearShape2Ds()[2].getValue(1,3));
-	}
-  // (1, 0, 0) stand for 1 constraint(x-direction) for row,column=(0 0)
-	public static void initGlobalBC() {
-		globalBC.setAsInt(1, 0, 0);
-		globalBC.setAsInt(2, 1, 0);
-		globalBC.setAsInt(1, 2, 0);
-		globalBC.setAsInt(2, 3, 0);
-	}
-
-	public static double bigNum = 1e20;
-
-	public static void setBC(int i) {
-	//	for (int i = 0; i < 2 * NodeNum; i++) {
-			if (globalBC.getAsInt(i, 0) > 0) {
-				globalK.setAsDouble(bigNum, 2 * i, 2 * i);
-				globalK.setAsDouble(bigNum, 2 * i + 1, 2 * i + 1);
-				// globalK.deleteRows(Calculation.Ret.NEW,i);
-				// globalK.deleteColumns(Calculation.Ret.NEW,i);
-				// globalF.deleteRows(Calculation.Ret.NEW,i);
-
-			}
-	//	}
-	}
-
-	public static void initGlobalF(int i) {
-		globalF.setAsFloat(5000, i, 0);
-		//globalF.setAsFloat(0, 5, 0);
-		//globalF.setAsFloat(5000, 6, 0);
-		//globalF.setAsFloat(0, 7, 0);
-	}
-
-	public static void assemble() {
-		for (Beam ele : elems) {
-			// System.out.println(ele.getK().det());
-			// ele.getK().print(1,1);
-			BaseNode[] enodes = ele.getNodes();
-
-			// int i=0;
-			for (int i = 0; i < 2; i++) {
-				for (int j = 0; j < 2; j++) {
-
-					 globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number, 2 * enodes[j].number)
-                             + ele.getK().get(2 * enodes[i].localnumber, 2 * enodes[j].localnumber),
-                     2 * enodes[i].number, 2 * enodes[j].number);
-
-             globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number, 2 * enodes[j].number+1)
-                             + ele.getK().get(2 * enodes[i].localnumber, 2 * enodes[j].localnumber+1),
-                     2 * enodes[i].number, 2 * enodes[j].number+1);
-
-             globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number+1, 2 * enodes[j].number)
-                             + ele.getK().get(2 * enodes[i].localnumber+1, 2 * enodes[j].localnumber),
-                     2 * enodes[i].number+1, 2 * enodes[j].number);
-
-             globalK.setAsDouble(globalK.getAsDouble(2 * enodes[i].number + 1, 2 * enodes[j].number + 1)
-                             + ele.getK().get(2 * enodes[i].localnumber + 1, 2 * enodes[j].localnumber + 1),
-                     2 * enodes[i].number + 1, 2 * enodes[j].number + 1);
-
-				}
-			}
-			// System.out.print(globalK);
-		}
 	}
 
 	
