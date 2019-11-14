@@ -15,9 +15,10 @@
 
 </head>
 <body>
-<canvas id="canvas" width="1200" height="500" style=" background-color: #;border: 1px solid black"></canvas>
+<canvas id="canvas" width="1200" height="500" left="100px" style=" background-color: #;border: 1px solid black"></canvas>
 <div id="output"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+<script src="js/jCanvas.js"></script>
 <script type="text/javascript">
 
 //Canvas
@@ -47,55 +48,27 @@ $(canvas).on('mousemove', function(e) {
     mousex = parseInt(e.clientX-canvasx);
 	mousey = parseInt(e.clientY-canvasy);
     if(mousedown) {
-        ctx.clearRect(0,0,canvas.width,canvas.height); //clear canvas
+      /*   ctx.clearRect(0,0,canvas.width,canvas.height); //clear canvas
         ctx.beginPath();
         ctx.moveTo(last_mousex,last_mousey);
         ctx.lineTo(mousex,mousey);
         ctx.strokeStyle = 'black';
         ctx.lineWidth = 3;
         ctx.lineJoin = ctx.lineCap = 'round';
-        ctx.stroke();
+        ctx.stroke(); */
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+    	$('canvas').drawLine({
+    		  strokeStyle: '#000',
+    		  strokeWidth: 10,
+    		  x1: 100+mousex, y1: 50+mousey,
+    		  x2: 100+mousex, y2: 150+mousey,
+    		  x3: 200+mousex, y3: 100+mousey,
+    		  x4: 150+mousex, y4: 200+mousey
+    		});
     }
     //Output
     $('#output').html('current: '+mousex+', '+mousey+'<br/>last: '+last_mousex+', '+last_mousey+'<br/>mousedown: '+mousedown);
 });</script>
-<!-- include Vue.js -->
-<!-- we include babel js so that we can write ES6 code in the browser
-     for a more production like setup it is recommended to setup a build process
-     to transpile and minify the code (such as using webpack)
- -->
-<script src="https://cdn.jsdelivr.net/npm/vue@2.5.16/dist/vue.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/6.21.1/babel.min.js"></script>
-<script type="text/babel">
-    // player-card is now a Vue component that generates a 'card' showing a player
-    // It can be used
-    // declaratively like <player-card v-bind:player="someplayer">
-    Vue.component('player-card', {
-        props: ['player'],
-        template: `<div class="card">
-                    <div class="card-body">
-                        <h6 class="card-title">
-                            {{ player.name }}
-                        </h6>
-                        <p class="card-text">
-                            <div>
-                            {{ player.description }}
-                            </div>
-                        </p>
-                    </div>
-                </div>`
-    });
 
-    var app = new Vue({
-        el: '#contents',
-        data: {
-            players: [
-                {id: "1", name: "Lionel Messi", description: "Argentina's superstar"},
-                {id: "2", name: "Christiano Ronaldo", description: "Portugal top-ranked player"}
-            ]
-        }
-    });
-
-</script>
 </body>
 </html>
